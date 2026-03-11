@@ -1,160 +1,93 @@
-{% load static %}
+﻿{% load static %}
 <!DOCTYPE html>
 <html lang="en">
-
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Symptom Tracker - Period Tracker</title>
-    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css">
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/animate.css/4.1.1/animate.min.css" />
-    <style>
-        body {
-            font-family: 'Arial', sans-serif;
-            background: linear-gradient(to right, #fff0f3, #fde2e4);
-            margin: 0;
-            padding: 0;
-            color: #333;
-            overflow-x: hidden;
-        }
-
-        .section {
-            padding: 60px 0;
-        }
-
-        h2, h3 {
-            color: #d81b60;
-        }
-
-        .card {
-            background: white;
-            border-radius: 15px;
-            box-shadow: 0 10px 20px rgba(0, 0, 0, 0.1);
-            transition: transform 0.3s, box-shadow 0.3s;
-        }
-
-        .card:hover {
-            transform: translateY(-5px);
-            box-shadow: 0 15px 25px rgba(0, 0, 0, 0.15);
-        }
-
-        .emoji-container {
-            display: flex;
-            justify-content: center;
-            gap: 10px;
-            flex-wrap: wrap;
-            margin-top: 10px;
-        }
-
-        .emoji-button {
-            font-size: 24px;
-            padding: 10px;
-            background: #ffe6ec;
-            border: none;
-            border-radius: 10px;
-            cursor: pointer;
-            transition: transform 0.2s;
-        }
-
-        .emoji-button:hover {
-            transform: scale(1.2);
-        }
-
-        .fade-in {
-            opacity: 0;
-            transform: translateY(20px);
-            transition: opacity 0.8s ease-out, transform 0.8s ease-out;
-        }
-
-        .fade-in.visible {
-            opacity: 1;
-            transform: translateY(0);
-        }
-    </style>
+    <title>Symptom Tracker</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;700&family=Plus+Jakarta+Sans:wght@600;700;800&display=swap" rel="stylesheet">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="{% static 'css/site.css' %}">
 </head>
-
 <body>
-    <section id="symptoms" class="section">
-        <div class="container">
-            <h2 class="text-center mb-4 animate__animated animate__fadeInDown">Track Your Symptoms</h2>
-            <div class="row justify-content-center">
-                <div class="col-md-6">
-                    <div class="card shadow-sm border-0 rounded-4 fade-in">
-                        <div class="card-body">
-                            <h5 class="card-title text-center">Log Today's Symptoms</h5>
-                            <form method="post">
-                                {% csrf_token %}
-                                <label for="symptomsInput" class="form-label">Add Symptoms</label>
-                                <input type="text" class="form-control" id="symptomsInput" name="symptom" placeholder="E.g. Cramps, Mood Swings">
+<nav class="navbar navbar-expand-lg fixed-top app-nav">
+    <div class="container">
+        <a class="navbar-brand app-brand" href="index.html">Period Tracker</a>
+        <div class="navbar-nav ms-auto d-flex flex-row gap-1">
+            <a class="nav-link" href="index.html">Home</a>
+            <a class="nav-link active" href="symptoms.html">Symptoms</a>
+            <a class="nav-link" href="healthtips.html">Health Tips</a>
+            <a class="nav-link" href="Contact">Contact</a>
+        </div>
+    </div>
+</nav>
 
-                                <div class="emoji-container">
-                                    <button type="button" class="emoji-button" onclick="addSymptom('🤕 Headache')">🤕</button>
-                                    <button type="button" class="emoji-button" onclick="addSymptom('😣 Cramps')">😣</button>
-                                    <button type="button" class="emoji-button" onclick="addSymptom('🤧 Cold')">🤧</button>
-                                    <button type="button" class="emoji-button" onclick="addSymptom('🥱 Fatigue')">🥱</button>
-                                    <button type="button" class="emoji-button" onclick="addSymptom('🤯 Stress')">🤯</button>
-                                </div>
-
-                                <button type="submit" class="btn btn-danger w-100 rounded-pill mt-3">Add Symptom</button>
-                            </form>
+<main class="container page-shell">
+    <section class="section reveal">
+        <div class="row justify-content-center">
+            <div class="col-lg-7">
+                <div class="glass-card content-card">
+                    <p class="section-kicker mb-1">Daily Log</p>
+                    <h2 class="section-title text-center">Track Today's Symptoms</h2>
+                    <form method="post">
+                        {% csrf_token %}
+                        <label for="symptomsInput" class="form-label">Add Symptoms</label>
+                        <input type="text" class="form-control" id="symptomsInput" name="symptom" placeholder="Ex: Cramps, Mood Swings">
+                        <div class="emoji-container">
+                            <button type="button" class="emoji-button" onclick="addSymptom('Headache')">🤕</button>
+                            <button type="button" class="emoji-button" onclick="addSymptom('Cramps')">😣</button>
+                            <button type="button" class="emoji-button" onclick="addSymptom('Cold')">🤧</button>
+                            <button type="button" class="emoji-button" onclick="addSymptom('Fatigue')">🥱</button>
+                            <button type="button" class="emoji-button" onclick="addSymptom('Stress')">🤯</button>
                         </div>
-                    </div>
+                        <button type="submit" class="btn btn-danger w-100 mt-3">Add Symptom</button>
+                    </form>
                 </div>
             </div>
         </div>
     </section>
 
-    <script>
-  
-        document.addEventListener("DOMContentLoaded", function() {
-            let fadeInElements = document.querySelectorAll(".fade-in");
-            let observer = new IntersectionObserver(entries => {
-                entries.forEach(entry => {
-                    if (entry.isIntersecting) {
-                        entry.target.classList.add("visible");
-                    }
-                });
-            }, { threshold: 0.3 });
-
-            fadeInElements.forEach(el => observer.observe(el));
-        });
-
-        function addSymptom(symptom) {
-            document.getElementById("symptomsInput").value = symptom;
-            predictSymptoms(symptom);
-        }
-
-        function predictSymptoms(selectedSymptom) {
-            let symptomPredictions = {
-                "🤕 Headache": ["Fatigue", "Dehydration", "Stress"],
-                "😣 Cramps": ["Mood Swings", "Lower Back Pain", "Bloating"],
-                "🤧 Cold": ["Sore Throat", "Congestion", "Fatigue"],
-                "🥱 Fatigue": ["Dizziness", "Lack of Focus", "Irritability"],
-                "🤯 Stress": ["Anxiety", "Tension Headache", "Sleep Issues"]
-            };
-
-            let predictionArea = document.getElementById("predictedSymptoms");
-
-            if (selectedSymptom in symptomPredictions) {
-                let predicted = symptomPredictions[selectedSymptom].join(", ");
-                predictionArea.innerHTML = `<strong>Predicted Symptoms:</strong> ${predicted}`;
-            } else {
-                predictionArea.innerHTML = `<strong>Predicted Symptoms:</strong> No prediction available.`;
-            }
-        }
-
-
-    </script>
-
-    <section class="section">
-        <div class="container">
-            <h3 class="text-center">AI-Powered Symptom Predictions</h3>
-            <div class="card shadow-sm border-0 rounded-4 fade-in">
-                <div class="card-body text-center">
-                    <p id="predictedSymptoms" class="fw-bold"></p>
+    <section class="section reveal">
+        <div class="row justify-content-center">
+            <div class="col-lg-7">
+                <div class="glass-card content-card text-center">
+                    <p class="section-kicker mb-1">AI Insight</p>
+                    <h3 class="section-title">Predicted Related Symptoms</h3>
+                    <p id="predictedSymptoms" class="info-banner mb-0"></p>
                 </div>
             </div>
         </div>
     </section>
+
+    <footer class="app-footer">&copy; 2026 Period Tracker. All rights reserved.</footer>
+</main>
+
+<script>
+    function addSymptom(symptom) {
+        document.getElementById("symptomsInput").value = symptom;
+        predictSymptoms(symptom);
+    }
+
+    function predictSymptoms(selectedSymptom) {
+        const symptomPredictions = {
+            Headache: ["Fatigue", "Dehydration", "Stress"],
+            Cramps: ["Mood Swings", "Lower Back Pain", "Bloating"],
+            Cold: ["Sore Throat", "Congestion", "Fatigue"],
+            Fatigue: ["Dizziness", "Lack of Focus", "Irritability"],
+            Stress: ["Anxiety", "Tension Headache", "Sleep Issues"],
+        };
+
+        const predictionArea = document.getElementById("predictedSymptoms");
+
+        if (selectedSymptom in symptomPredictions) {
+            predictionArea.innerHTML = `<strong>Predicted:</strong> ${symptomPredictions[selectedSymptom].join(", ")}`;
+        } else {
+            predictionArea.innerHTML = "<strong>Predicted:</strong> No prediction available.";
+        }
+    }
+</script>
+<script src="{% static 'js/site.js' %}"></script>
 </body>
 </html>
