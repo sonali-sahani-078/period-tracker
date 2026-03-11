@@ -145,28 +145,85 @@
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
 <script src="{% static 'js/site.js' %}"></script>
 <script>
-    document.getElementById("period-calculator-form").addEventListener("submit", function (e) {
+    const CALENDAR_STORAGE_KEY = "periodTrackerSelectedDays";
+    const CALCULATOR_STORAGE_KEY = "periodTrackerCalculator";
+    const dayCheckboxes = document.querySelectorAll(".period-checkbox");
+    const calculatorForm = document.getElementById("period-calculator-form");
+    const cycleLengthInput = document.getElementById("cycleLength");
+    const lastPeriodDateInput = document.getElementById("lastPeriodDate");
+    const result = document.getElementById("result");
+
+    const renderResult = (cycleLength, inputDate) => {
+        const lastPeriodDate = new Date(inputDate);
+        const nextPeriodDate = new Date(lastPeriodDate);
+        nextPeriodDate.setDate(lastPeriodDate.getDate() + cycleLength);
+
+        result.classList.remove("d-none");
+        result.innerHTML = `
+            <h5 class="mb-1">Your next period is expected on</h5>
+            <strong>${nextPeriodDate.toLocaleDateString()}</strong>
+        `;
+    };
+
+    const saveSelectedCalendarDays = () => {
+        const selectedDayIds = Array.from(dayCheckboxes)
+            .filter((checkbox) => checkbox.checked)
+            .map((checkbox) => checkbox.id);
+        localStorage.setItem(CALENDAR_STORAGE_KEY, JSON.stringify(selectedDayIds));
+    };
+
+    const restoreSelectedCalendarDays = () => {
+        const savedDayIds = JSON.parse(localStorage.getItem(CALENDAR_STORAGE_KEY) || "[]");
+        dayCheckboxes.forEach((checkbox) => {
+            checkbox.checked = savedDayIds.includes(checkbox.id);
+        });
+    };
+
+    const saveCalculatorFields = () => {
+        const payload = {
+            cycleLength: cycleLengthInput.value,
+            lastPeriodDate: lastPeriodDateInput.value,
+        };
+        localStorage.setItem(CALCULATOR_STORAGE_KEY, JSON.stringify(payload));
+    };
+
+    const restoreCalculatorFields = () => {
+        const savedPayload = JSON.parse(localStorage.getItem(CALCULATOR_STORAGE_KEY) || "{}");
+        if (savedPayload.cycleLength) {
+            cycleLengthInput.value = savedPayload.cycleLength;
+        }
+        if (savedPayload.lastPeriodDate) {
+            lastPeriodDateInput.value = savedPayload.lastPeriodDate;
+        }
+        if (savedPayload.cycleLength && savedPayload.lastPeriodDate) {
+            renderResult(parseInt(savedPayload.cycleLength, 10), savedPayload.lastPeriodDate);
+        }
+    };
+
+    dayCheckboxes.forEach((checkbox) => {
+        checkbox.addEventListener("change", saveSelectedCalendarDays);
+    });
+
+    cycleLengthInput.addEventListener("input", saveCalculatorFields);
+    lastPeriodDateInput.addEventListener("change", saveCalculatorFields);
+
+    calculatorForm.addEventListener("submit", function (e) {
         e.preventDefault();
 
-        const cycleLength = parseInt(document.getElementById("cycleLength").value, 10);
-        const inputDate = document.getElementById("lastPeriodDate").value;
-        const lastPeriodDate = new Date(inputDate);
+        const cycleLength = parseInt(cycleLengthInput.value, 10);
+        const inputDate = lastPeriodDateInput.value;
 
         if (!cycleLength || !inputDate) {
             alert("Please fill in both fields.");
             return;
         }
 
-        const nextPeriodDate = new Date(lastPeriodDate);
-        nextPeriodDate.setDate(lastPeriodDate.getDate() + cycleLength);
-
-        const result = document.getElementById("result");
-        result.classList.remove("d-none");
-        result.innerHTML = `
-            <h5 class="mb-1">Your next period is expected on</h5>
-            <strong>${nextPeriodDate.toLocaleDateString()}</strong>
-        `;
+        renderResult(cycleLength, inputDate);
+        saveCalculatorFields();
     });
+
+    restoreSelectedCalendarDays();
+    restoreCalculatorFields();
 
     const ctx = document.getElementById("hormoneChart").getContext("2d");
     new Chart(ctx, {
