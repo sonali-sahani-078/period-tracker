@@ -65,9 +65,21 @@
 
     <section id="calendar" class="section reveal">
         <div class="glass-card content-card">
-            <p class="section-kicker mb-1">Calendar</p>
-            <h2 class="section-title mb-2">Track period days</h2>
+            <div class="calendar-header">
+                <div>
+                    <p class="section-kicker mb-1">Calendar</p>
+                    <h2 class="section-title mb-2">Track period days</h2>
+                </div>
+                <div class="calendar-controls">
+                    <select id="monthSelect" class="form-select form-select-sm" aria-label="Select month"></select>
+                    <select id="yearSelect" class="form-select form-select-sm" aria-label="Select year"></select>
+                </div>
+            </div>
             <p class="text-muted mb-3">Select the days in your cycle where bleeding occurred and save your cycle data.</p>
+            <div class="calendar-meta mb-3">
+                <span class="calendar-pill calendar-pill-period">Selected period day</span>
+                <span class="calendar-pill calendar-pill-normal">Unselected day</span>
+            </div>
             <form method="post">
                 {% csrf_token %}
                 <div class="table-responsive">
@@ -192,8 +204,11 @@
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
 <script src="{% static 'js/site.js' %}"></script>
 <script>
-    const CALENDAR_STORAGE_KEY = "periodTrackerSelectedDays";
+    const CALENDAR_STORAGE_KEY = "periodTrackerSelectedDaysByMonth";
+    const CALENDAR_VIEW_KEY = "periodTrackerCalendarView";
     const CALCULATOR_STORAGE_KEY = "periodTrackerCalculator";
+    const monthSelect = document.getElementById("monthSelect");
+    const yearSelect = document.getElementById("yearSelect");
     const dayCheckboxes = document.querySelectorAll(".period-checkbox");
     const calculatorForm = document.getElementById("period-calculator-form");
     const cycleLengthInput = document.getElementById("cycleLength");
@@ -217,15 +232,86 @@
         const selectedDayIds = Array.from(dayCheckboxes)
             .filter((checkbox) => checkbox.checked)
             .map((checkbox) => checkbox.id);
-        localStorage.setItem(CALENDAR_STORAGE_KEY, JSON.stringify(selectedDayIds));
+
+        const savedSelections = JSON.parse(localStorage.getItem(CALENDAR_STORAGE_KEY) || "{}");
+        savedSelections[getCalendarKey()] = selectedDayIds;
+        localStorage.setItem(CALENDAR_STORAGE_KEY, JSON.stringify(savedSelections));
         renderHormoneChart();
     };
 
     const restoreSelectedCalendarDays = () => {
-        const savedDayIds = JSON.parse(localStorage.getItem(CALENDAR_STORAGE_KEY) || "[]");
+        const savedSelections = JSON.parse(localStorage.getItem(CALENDAR_STORAGE_KEY) || "{}");
+        const savedDayIds = savedSelections[getCalendarKey()] || [];
         dayCheckboxes.forEach((checkbox) => {
             checkbox.checked = savedDayIds.includes(checkbox.id);
         });
+    };
+
+    const monthNames = [
+        "January", "February", "March", "April", "May", "June",
+        "July", "August", "September", "October", "November", "December"
+    ];
+
+    const getCalendarKey = () => `${yearSelect.value}-${monthSelect.value}`;
+
+    const getDaysInSelectedMonth = () => {
+        const month = Number(monthSelect.value);
+        const year = Number(yearSelect.value);
+        return new Date(year, month, 0).getDate();
+    };
+
+    const saveCalendarView = () => {
+        localStorage.setItem(CALENDAR_VIEW_KEY, JSON.stringify({
+            month: monthSelect.value,
+            year: yearSelect.value,
+        }));
+    };
+
+    const updateCalendarForMonthYear = () => {
+        const daysInMonth = getDaysInSelectedMonth();
+        dayCheckboxes.forEach((checkbox) => {
+            const dayNumber = Number(checkbox.id.replace("day", ""));
+            const label = document.querySelector(`label[for="${checkbox.id}"]`);
+            const isVisible = dayNumber <= daysInMonth;
+
+            checkbox.disabled = !isVisible;
+            checkbox.checked = isVisible ? checkbox.checked : false;
+            if (label) {
+                label.style.visibility = isVisible ? "visible" : "hidden";
+                label.style.pointerEvents = isVisible ? "auto" : "none";
+            }
+        });
+    };
+
+    const restoreCalendarView = () => {
+        const currentDate = new Date();
+        const savedView = JSON.parse(localStorage.getItem(CALENDAR_VIEW_KEY) || "{}");
+        const defaultMonth = String(currentDate.getMonth() + 1);
+        const defaultYear = String(currentDate.getFullYear());
+        monthSelect.value = savedView.month || defaultMonth;
+        yearSelect.value = savedView.year || defaultYear;
+    };
+
+    const refreshCalendarState = () => {
+        updateCalendarForMonthYear();
+        restoreSelectedCalendarDays();
+        renderHormoneChart();
+    };
+
+    const initializeMonthYearSelectors = () => {
+        monthSelect.innerHTML = monthNames
+            .map((monthName, index) => `<option value="${index + 1}">${monthName}</option>`)
+            .join("");
+
+        const currentYear = new Date().getFullYear();
+        const years = [];
+        for (let year = currentYear - 5; year <= currentYear + 5; year += 1) {
+            years.push(`<option value="${year}">${year}</option>`);
+        }
+        yearSelect.innerHTML = years.join("");
+
+        restoreCalendarView();
+        refreshCalendarState();
     };
 
     const getSelectedDayNumbers = () => {
@@ -252,8 +338,9 @@
         const periodStartDay = selectedDays.length > 0 ? selectedDays[0] : 1;
         const labels = [];
         const moodValues = [];
+        const daysInMonth = getDaysInSelectedMonth();
 
-        for (let day = 1; day <= 31; day += 1) {
+        for (let day = 1; day <= daysInMonth; day += 1) {
             const cycleDay = ((day - periodStartDay + cycleLength) % cycleLength) + 1;
             const mood = getMoodForCycleDay(cycleDay, cycleLength, selectedSet.has(day));
             labels.push(`Day ${day}`);
@@ -327,6 +414,14 @@
     dayCheckboxes.forEach((checkbox) => {
         checkbox.addEventListener("change", saveSelectedCalendarDays);
     });
+    monthSelect.addEventListener("change", () => {
+        saveCalendarView();
+        refreshCalendarState();
+    });
+    yearSelect.addEventListener("change", () => {
+        saveCalendarView();
+        refreshCalendarState();
+    });
 
     cycleLengthInput.addEventListener("input", saveCalculatorFields);
     lastPeriodDateInput.addEventListener("change", saveCalculatorFields);
@@ -347,7 +442,7 @@
         saveCalculatorFields();
     });
 
-    restoreSelectedCalendarDays();
+    initializeMonthYearSelectors();
     restoreCalculatorFields();
     renderHormoneChart();
 </script>

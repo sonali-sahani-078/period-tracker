@@ -14,12 +14,12 @@
 <body>
 <nav class="navbar navbar-expand-lg fixed-top app-nav">
     <div class="container">
-        <a class="navbar-brand app-brand" href="index.html">Period Tracker</a>
+        <a class="navbar-brand app-brand" href="{% url 'index' %}">Period Tracker</a>
         <div class="navbar-nav ms-auto d-flex flex-row gap-1">
-            <a class="nav-link" href="index.html">Home</a>
-            <a class="nav-link" href="symptoms.html">Symptoms</a>
-            <a class="nav-link" href="healthtips.html">Health Tips</a>
-            <a class="nav-link active" href="Contact">Contact</a>
+            <a class="nav-link" href="{% url 'index' %}">Home</a>
+            <a class="nav-link" href="{% url 'symptoms' %}">Symptoms</a>
+            <a class="nav-link" href="{% url 'healthtips' %}">Health Tips</a>
+            <a class="nav-link active" href="{% url 'contact' %}">Contact</a>
         </div>
     </div>
 </nav>
@@ -32,7 +32,12 @@
                     <p class="section-kicker mb-1">Get In Touch</p>
                     <h2 class="section-title">Contact Us</h2>
                     <p class="text-muted">Questions, feedback, or ideas? Send us a message.</p>
-                    <form action="" method="post" class="row g-3 mt-1">
+                    {% if messages %}
+                        {% for message in messages %}
+                            <div class="alert alert-success mt-2" role="alert">{{ message }}</div>
+                        {% endfor %}
+                    {% endif %}
+                    <form action="{% url 'contact' %}" method="post" class="row g-3 mt-1">
                         {% csrf_token %}
                         <div class="col-md-6">
                             <input type="text" name="name" placeholder="Your Name" class="form-control" required>

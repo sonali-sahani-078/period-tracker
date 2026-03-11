@@ -17,17 +17,16 @@ Including another URLconf
 from django.contrib import admin
 from django.urls import path
 from health import views
-from health.views import Contact
 
 
 urlpatterns = [
     path('admin/', admin.site.urls),
-    path('',views.index),
-    path('index.html',views.index),
-    path('symptoms.html',views.symptoms),
-    path('healthtips.html',views.healthtips),
-    #path('contact.html', views.contact, name='contact'),
-    path('Contact', views.Contact, name='Contact'),
+    path('', views.index, name='home'),
+    path('index.html', views.index, name='index'),
+    path('symptoms.html', views.symptoms, name='symptoms'),
+    path('healthtips.html', views.healthtips, name='healthtips'),
+    path('contact.html', views.contact, name='contact'),
+    path('Contact', views.contact),
 
 ]
 
